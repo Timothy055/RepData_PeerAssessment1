@@ -1,0 +1,31 @@
+---
+title: "Analysis"
+author: "Timothy M. Rodriguez"
+date: "Sunday, February 08, 2015"
+output: html_document
+---
+
+##Getting the data
+Here we download the data (if not already downloaded) and unzip it and report an overall summary of the data.
+
+```{r}
+file.name <- "activity"
+file.name.zip <- paste(file.name, ".zip", sep="")
+file.name.csv <- paste(file.name, ".csv", sep="")
+if (!file.exists(file.name.zip)) {
+    download.file("http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", file.name.zip)
+}
+unzip(file.name.zip)
+data <- read.csv(file.name.csv)
+
+summary(data)
+```
+
+##Answering Questions
+Next, we'd like to answer some quetsions about the data.  For example
+
+1. What is the mean total number of steps taken per day?
+
+```{r}
+
+```
