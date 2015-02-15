@@ -48,7 +48,10 @@ plot(steps.by.interval$interval,
      main="Average steps per day",
      xlab="Interval",
      ylab="Average Steps taken")
+max.interval <- steps.by.interval[steps.by.interval$steps == max(steps.by.interval$steps), ]$interval
 ```
+
+The 5-minute interval with the highest steps on average is `r max.interval`.
 
 There may be some bias being introduced by missing values.
 
@@ -81,7 +84,7 @@ plot(steps.by.interval.no.nas$interval,
      ylab="Average Steps taken")
 ```
 
-That didn't seem to change the plot very much.
+This didn't change the plot very much because we replaced missing values with the mean value. Previoulsly they were just omitted, so this had no affect on the plot of average (mean) steps.
 
 ###3. Are there differences in activity patterns between weekdays and weekends?
 
