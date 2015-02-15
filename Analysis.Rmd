@@ -1,5 +1,5 @@
 ---
-title: "Analysis"
+title: "Activity Data Analysis"
 author: "Timothy M. Rodriguez"
 date: "Sunday, February 08, 2015"
 output: html_document
@@ -16,16 +16,99 @@ if (!file.exists(file.name.zip)) {
     download.file("http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", file.name.zip)
 }
 unzip(file.name.zip)
-data <- read.csv(file.name.csv)
+activity.data <- read.csv(file.name.csv)
 
-summary(data)
+summary(activity.data)
 ```
 
 ##Answering Questions
-Next, we'd like to answer some quetsions about the data.  For example
+Next, we'd like to answer some questions about the data.  For example
 
-1. What is the mean total number of steps taken per day?
+### 1. What is the mean total number of steps taken per day?
 
 ```{r}
+hist(aggregate(steps ~ date, data=activity.data, sum)$steps,
+     breaks=10,
+     main="Histogram of steps taken per day",
+     xlab="Steps taken")
+median <- median(activity.data$steps, na.rm=T)
+mean <- mean(activity.data$steps, na.rm=T)
+```
+
+The median was `r median` and the mean was `r mean`.
+
+### 2. What is the average daily activity pattern?
+Let's aggregate the data by interval.
+
+```{r}
+steps.by.interval <- aggregate(steps ~ interval, data=activity.data, sum)
+plot(steps.by.interval$interval,
+     steps.by.interval$steps,
+     type="l",
+     main="Average steps per day",
+     xlab="Interval",
+     ylab="Average Steps taken")
+```
+
+There may be some bias being introduced by missing values.
+
+```{r}
+number.of.missing.rows <- nrow(activity.data[!complete.cases(activity.data), ])
 
 ```
+The total number of missing values are `r number.of.missing.rows`.
+
+Let's try to create a data set with NAs replaced by the mean for that interval.
+
+```{r}
+get.mean.for.interval <- function(interval) {
+    steps.by.interval[steps.by.interval$interval == interval, ]$steps
+}
+activity.data.no.nas <- data.frame(activity.data)
+activity.data.no.nas$steps <- sapply(activity.data.no.nas$interval, get.mean.for.interval, simplify=T)
+number.of.missing.rows.after.cleanup <- nrow(activity.data.no.nas[!complete.cases(activity.data.no.nas), ])
+```
+
+There are now `r number.of.missing.rows.after.cleanup` NAs after imputing values. Okay, let's plot the cleaned up data.
+
+```{r}
+steps.by.interval.no.nas <- aggregate(steps ~ interval, data=activity.data.no.nas, sum)
+plot(steps.by.interval.no.nas$interval,
+     steps.by.interval.no.nas$steps,
+     type="l",
+     main="Average steps per day",
+     xlab="Interval",
+     ylab="Average Steps taken")
+```
+
+That didn't seem to change the plot very much.
+
+###3. Are there differences in activity patterns between weekdays and weekends?
+
+Let's label each observation with a factor for weekend or weekday.
+
+```{r}
+day.type <- factor(c("weekday", "weekend"))
+get.day.type <- function(date) {
+    day <- weekdays(as.Date(date))
+    if (day == "Saturday" || day == "Sunday") {
+        levels(day.type)[2]
+    } else {
+        levels(day.type)[1]
+    }
+}
+activity.data.no.nas$day.type <- sapply(activity.data.no.nas$date, get.day.type, simplify=T)
+```
+
+Next, let's aggregate the data by interval and day type.
+
+```{r}
+steps.by.interval.and.day.type <- aggregate(steps ~ interval + day.type, data=activity.data.no.nas, sum)
+library(ggplot2)
+ggplot(steps.by.interval.and.day.type, aes(x=interval, y=steps, group="weekday")) +
+    ggtitle("Steps Taken on Weekdays") +
+    geom_line() +
+    facet_wrap(~day.type)
+```
+
+Here, we can see that activity drops markedly during the weekend.
